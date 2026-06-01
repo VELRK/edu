@@ -1,5 +1,20 @@
 <?php
-define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
+// Load .env file into environment before anything else
+$_envFile = __DIR__ . '/.env';
+if (file_exists($_envFile)) {
+    foreach (file($_envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $_line) {
+        if (strpos(trim($_line), '#') === 0 || strpos($_line, '=') === false) continue;
+        [$_k, $_v] = array_map('trim', explode('=', $_line, 2));
+        if ($_k && !array_key_exists($_k, $_SERVER) && !array_key_exists($_k, $_ENV)) {
+            putenv("$_k=$_v");
+            $_ENV[$_k] = $_v;
+            $_SERVER[$_k] = $_v;
+        }
+    }
+}
+unset($_envFile, $_line, $_k, $_v);
+
+define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : (getenv('CI_ENV') ?: 'development'));
 
 switch (ENVIRONMENT) {
     case 'development':

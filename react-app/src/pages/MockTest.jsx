@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth.js';
+import { apiFetch } from '../lib/api';
 
 const SCREENS = { SETUP: 'setup', TEST: 'test', RESULT: 'result' };
 
@@ -37,7 +38,7 @@ export default function MockTest() {
 
   async function loadSubjects() {
     try {
-      const res = await fetch('/api/topics');
+      const res = await apiFetch('/api/topics');
       const d = await res.json();
       const subMap = {};
       (d.data || []).forEach(t => { subMap[t.subject_id] = t.subject_english; });

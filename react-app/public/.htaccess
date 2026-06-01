@@ -1,0 +1,10 @@
+Options -Indexes
+RewriteEngine On
+RewriteBase /edu/react-app/dist/
+
+# Serve real files/dirs directly
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Everything else → index.html (React Router handles it)
+RewriteRule ^ index.html [L]

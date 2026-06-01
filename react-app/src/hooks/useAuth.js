@@ -1,3 +1,5 @@
+import { API_BASE } from '../lib/api';
+
 export function useAuth() {
   const getToken = () => localStorage.getItem('jwt');
 
@@ -11,9 +13,9 @@ export function useAuth() {
     localStorage.removeItem('user');
   };
 
-  // Fetch wrapper that auto-redirects to /login on 401 or 403
-  const fetchAuth = async (url, options = {}) => {
-    const res = await fetch(url, {
+  // Prefixes path with API_BASE so calls work on both dev and production
+  const fetchAuth = async (path, options = {}) => {
+    const res = await fetch(`${API_BASE}${path}`, {
       ...options,
       headers: { ...authHeader(), ...options.headers },
     });

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { apiFetch } from '../lib/api';
 
 const TAMIL_DISTRICTS = [
   'Ariyalur','Chengalpattu','Chennai','Coimbatore','Cuddalore','Dharmapuri',
@@ -25,7 +26,7 @@ export default function Register() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('/api/dashboard/counts')
+    apiFetch('/api/dashboard/counts')
       .then(r => r.json())
       .then(d => { if (d.success) setCounts(d.data.totals); })
       .catch(() => {});
@@ -41,7 +42,7 @@ export default function Register() {
 
     setLoading(true);
     try {
-      const res  = await fetch('/api/auth/send-otp', {
+      const res  = await apiFetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -73,7 +74,7 @@ export default function Register() {
     if (!otp || otp.length !== 6) return setError('Enter the 6-digit OTP');
     setLoading(true);
     try {
-      const res  = await fetch('/api/auth/verify-otp', {
+      const res  = await apiFetch('/api/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: form.phone, otp }),

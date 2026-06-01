@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth.js';
+import { apiFetch } from '../lib/api';
 
 const SCREEN = { SETUP: 'setup', EXAM: 'exam', RESULT: 'result' };
 
@@ -104,7 +105,7 @@ export default function PYQExam() {
     try {
       const topicIds = [...selectedTopics];
       const fetches = topicIds.map(id =>
-        fetch(`/api/topics/${id}/questions`)
+        apiFetch(`/api/topics/${id}/questions`)
           .then(r => r.json())
           .then(d => {
             const topicInfo = allTopics.find(t => t.topic_id === id);

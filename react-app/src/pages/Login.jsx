@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { apiFetch } from '../lib/api';
 
 export default function Login() {
   const [phone,    setPhone]    = useState('');
@@ -16,7 +17,7 @@ export default function Login() {
     if (!/^\d{10}$/.test(phone)) return setError('Enter a valid 10-digit phone number');
     setLoading(true);
     try {
-      const res  = await fetch('/api/auth/send-otp', {
+      const res  = await apiFetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, purpose: 'login' }),
@@ -38,7 +39,7 @@ export default function Login() {
     if (!otp || otp.length !== 6) return setError('Enter the 6-digit OTP');
     setLoading(true);
     try {
-      const res  = await fetch('/api/auth/verify-otp', {
+      const res  = await apiFetch('/api/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, otp }),

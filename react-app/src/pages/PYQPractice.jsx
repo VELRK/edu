@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth.js';
+import { apiFetch } from '../lib/api';
 
 const SCREEN = { SELECT: 'select', TEST: 'test', RESULT: 'result', HISTORY: 'history', REVIEW: 'review' };
 
@@ -54,7 +55,7 @@ export default function PYQPractice() {
   async function loadYears() {
     setLoadingYears(true);
     try {
-      const res = await fetch('/api/pyq2/years');
+      const res = await apiFetch('/api/pyq2/years');
       const d = await res.json();
       setYears(d.success ? d.data : []);
     } catch (e) { setYears([]); }
@@ -89,7 +90,7 @@ export default function PYQPractice() {
       // Load questions filtered by medium
       const params = new URLSearchParams({ year });
       if (effectiveMedium !== 'all') params.set('medium', effectiveMedium);
-      const qRes = await fetch(`/api/pyq2/questions?${params}`);
+      const qRes = await apiFetch(`/api/pyq2/questions?${params}`);
       const qD = await qRes.json();
       if (!qD.success) throw new Error('Failed to load questions');
 

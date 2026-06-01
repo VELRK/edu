@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth.js';
+import { apiFetch } from '../lib/api';
 
 function FlashCards({ cards }) {
   const [flipped, setFlipped] = useState({});
@@ -188,7 +189,7 @@ function Courses() {
     setTopicLoading(true);
     if (isMobile()) setMobileView('detail');
     try {
-      const res = await fetch(`/api/topics/${topicId}`);
+      const res = await apiFetch(`/api/topics/${topicId}`);
       if (res.ok) {
         const d = await res.json();
         setTopicDetail(d.data);

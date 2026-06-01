@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
+import { apiFetch } from '../lib/api';
 
 function Dashboard() {
   const { fetchAuth } = useAuth();
@@ -22,7 +23,7 @@ function Dashboard() {
         const [statsRes, examsRes, countsRes] = await Promise.all([
           fetchAuth('/api/user/stats'),
           fetchAuth('/api/exam-attempts'),
-          fetch('/api/dashboard/counts'),
+          apiFetch('/api/dashboard/counts'),
         ]);
         if (!statsRes || !examsRes) return;
         if (statsRes.ok) {

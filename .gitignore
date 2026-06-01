@@ -1,0 +1,23 @@
+# ── Secrets ───────────────────────────────────────────────────────────────────
+# Root .env has DB credentials — never commit it
+/.env
+.env.server
+.deploy.env
+# React local overrides (react-app/.env and .env.production are safe to commit)
+react-app/.env.local
+react-app/.env.*.local
+
+# ── React ─────────────────────────────────────────────────────────────────────
+react-app/node_modules/
+react-app/dist/
+
+# ── CodeIgniter ───────────────────────────────────────────────────────────────
+application/logs/*.php
+application/cache/*
+
+# ── OS / IDE ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
