@@ -76,9 +76,9 @@ $query_builder = TRUE;
 $db['default'] = array(
 	'dsn'	=> '',
 	'hostname' => 'localhost',
-	'username' => getenv('DB_USER')     ?: 'u221026474_edu',
-	'password' => getenv('DB_PASSWORD') ?: 'Velmurugn0071@!!',
-	'database' => getenv('DB_NAME')     ?: 'u221026474_edu',
+	'username' => 'u221026474_edu',
+	'password' => 'Velmurugn0071@!!',
+	'database' => 'u221026474_edu',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
 	'pconnect' => FALSE,
@@ -92,5 +92,5 @@ $db['default'] = array(
 	'compress' => FALSE,
 	'stricton' => FALSE,
 	'failover' => array(),
-	'save_queries' => (ENVIRONMENT !== 'production'),
+	'save_queries' => TRUE
 );
