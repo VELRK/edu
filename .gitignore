@@ -9,7 +9,7 @@ react-app/.env.*.local
 
 # ── React ─────────────────────────────────────────────────────────────────────
 react-app/node_modules/
-react-app/dist/
+# dist/ is intentionally tracked — build locally, commit, push to deploy
 
 # ── CodeIgniter ───────────────────────────────────────────────────────────────
 application/logs/*.php
