@@ -1,0 +1,2040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TNPSC API Docs</title>
+<style>
+  :root{
+    --bg:#f5f7fa;--card:#fff;--border:#e2e8f0;
+    --get:#16a34a;--get-bg:#f0fdf4;--get-border:#bbf7d0;
+    --post:#d97706;--post-bg:#fffbeb;--post-border:#fde68a;
+    --put:#7c3aed;--put-bg:#f5f3ff;--put-border:#ddd6fe;
+    --del:#dc2626;--del-bg:#fef2f2;--del-border:#fecaca;
+    --lock:#6d28d9;--pub:#15803d;
+    --code-bg:#0f172a;--code-text:#e2e8f0;
+    --tag-bg:#1e40af;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:#1e293b;font-size:14px}
+
+  /* HEADER */
+  .site-header{background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:32px 40px;color:#fff}
+  .site-header h1{font-size:26px;font-weight:700;letter-spacing:.3px}
+  .site-header p{color:#94a3b8;margin-top:6px;font-size:13px}
+  .base-strip{background:#0ea5e9;color:#fff;padding:10px 40px;font-family:monospace;font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .base-strip strong{color:#fff;font-size:12px;opacity:.8}
+  .base-strip span{background:rgba(255,255,255,.15);padding:3px 10px;border-radius:4px}
+
+  .layout{display:flex;max-width:1300px;margin:24px auto;padding:0 20px;gap:20px}
+
+  /* SIDEBAR */
+  .sidebar{width:230px;flex-shrink:0}
+  .sidebar-group{background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px}
+  .sidebar-group-title{padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#64748b;background:#f8fafc;border-bottom:1px solid var(--border)}
+  .sidebar a{display:block;padding:8px 14px;font-size:12.5px;color:#334155;text-decoration:none;border-bottom:1px solid #f1f5f9;transition:background .12s}
+  .sidebar a:last-child{border-bottom:none}
+  .sidebar a:hover{background:#f0f9ff;color:#0ea5e9}
+
+  /* CONTENT */
+  .content{flex:1;min-width:0}
+
+  /* AUTH NOTE */
+  .auth-note{background:#fef9ee;border:1px solid #fde68a;border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:13px;color:#78350f}
+  .auth-note strong{display:block;margin-bottom:4px;color:#92400e}
+  .auth-note code{background:#fde68a;padding:2px 6px;border-radius:4px;font-size:12px}
+
+  /* SECTION */
+  .section{margin-bottom:12px;background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .section-title{padding:14px 20px;font-size:15px;font-weight:700;color:#0f172a;background:#f8fafc;border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
+  .section-title:hover{background:#f0f9ff}
+  .section-body{display:none}
+  .section.open .section-body{display:block}
+  .section-title .chevron{transition:transform .2s}
+  .section.open .section-title .chevron{transform:rotate(180deg)}
+
+  /* ENDPOINT */
+  .endpoint{border-bottom:1px solid var(--border)}
+  .endpoint:last-child{border-bottom:none}
+  .ep-header{display:flex;align-items:center;gap:10px;padding:12px 20px;cursor:pointer;transition:background .1s}
+  .ep-header:hover{background:#f8fafc}
+  .ep-method{font-family:monospace;font-weight:800;font-size:11px;padding:3px 9px;border-radius:4px;min-width:56px;text-align:center}
+  .GET{color:var(--get);background:var(--get-bg);border:1px solid var(--get-border)}
+  .POST{color:var(--post);background:var(--post-bg);border:1px solid var(--post-border)}
+  .PUT{color:var(--put);background:var(--put-bg);border:1px solid var(--put-border)}
+  .DELETE{color:var(--del);background:var(--del-bg);border:1px solid var(--del-border)}
+  .ep-path{font-family:monospace;font-size:13px;color:#0f172a;font-weight:600;flex:1}
+  .ep-desc{font-size:12px;color:#64748b;margin-left:auto}
+  .auth-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}
+  .tag-jwt{background:#ede9fe;color:#6d28d9}
+  .tag-pub{background:#dcfce7;color:#15803d}
+  .tag-dep{background:#fee2e2;color:#b91c1c}
+
+  /* ENDPOINT DETAIL */
+  .ep-detail{display:none;padding:0 20px 20px 20px;background:#fafbfc;border-top:1px solid #f1f5f9}
+  .ep-detail.open{display:block}
+
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  @media(max-width:700px){.detail-grid{grid-template-columns:1fr}.layout{flex-direction:column}.sidebar{width:100%}}
+
+  .detail-box{border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+  .detail-box-title{background:#1e293b;color:#94a3b8;font-size:11px;font-weight:700;padding:7px 14px;letter-spacing:.5px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+  .detail-box-title .copy-btn{background:transparent;border:1px solid #475569;color:#94a3b8;font-size:10px;padding:2px 8px;border-radius:4px;cursor:pointer;font-family:monospace}
+  .detail-box-title .copy-btn:hover{background:#334155;color:#e2e8f0}
+  pre{background:var(--code-bg);color:var(--code-text);padding:14px;font-size:12px;line-height:1.7;overflow-x:auto;font-family:'Consolas','Monaco',monospace;white-space:pre}
+
+  .params-table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .params-table th{background:#f1f5f9;padding:7px 12px;text-align:left;font-weight:600;color:#475569;border-bottom:1px solid var(--border)}
+  .params-table td{padding:7px 12px;border-bottom:1px solid #f1f5f9;vertical-align:top}
+  .params-table tr:last-child td{border-bottom:none}
+  .required{color:#dc2626;font-size:10px;font-weight:700;background:#fee2e2;padding:1px 5px;border-radius:3px}
+  .optional{color:#64748b;font-size:10px;background:#f1f5f9;padding:1px 5px;border-radius:3px}
+  .param-type{font-family:monospace;color:#7c3aed;font-size:11px}
+
+  .status-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;margin-right:6px}
+  .s200{background:#dcfce7;color:#15803d}
+  .s400{background:#fef9c3;color:#854d0e}
+  .s401{background:#fee2e2;color:#b91c1c}
+  .s404{background:#fee2e2;color:#b91c1c}
+  .s410{background:#f3f4f6;color:#6b7280}
+</style>
+</head>
+<body>
+
+<div class="site-header">
+  <h1>TNPSC API Documentation</h1>
+  <p>REST API reference for mobile app developers &mdash; CodeIgniter 3 backend</p>
+</div>
+<div class="base-strip">
+  <strong>BASE URL</strong>
+  <span id="baseUrl">https://yourdomain.com/edu</span>
+  &nbsp;&bull;&nbsp; All endpoints append to base URL &nbsp;&bull;&nbsp; Content-Type: application/json
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-group">
+      <div class="sidebar-group-title">Public</div>
+      <a href="#auth">Authentication</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#topics">Topics</a>
+      <a href="#pyq">PYQ</a>
+      <a href="#pyq2-public">PYQ2 Questions</a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-group-title">Protected (JWT)</div>
+      <a href="#subjects">Subjects</a>
+      <a href="#user-profile">User Profile</a>
+      <a href="#progress">Progress</a>
+      <a href="#stats">Stats &amp; Analytics</a>
+      <a href="#wrong">Wrong Answers</a>
+      <a href="#srs">SRS Flashcards</a>
+      <a href="#bookmarks">Bookmarks</a>
+      <a href="#activity">Activity &amp; Goals</a>
+      <a href="#exam">Exam Attempts</a>
+      <a href="#mock">Mock Tests</a>
+      <a href="#pyq2-attempts">PYQ2 Attempts</a>
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <main class="content">
+
+    <div class="auth-note">
+      <strong>JWT Authentication</strong>
+      Send token in every protected request header:<br>
+      <code>Authorization: Bearer &lt;your_jwt_token&gt;</code><br><br>
+      Token is returned from <strong>POST api/auth/verify-otp</strong> and expires in <strong>30 days</strong>.
+    </div>
+
+    <!-- ═══════════ AUTH ═══════════ -->
+    <div class="section open" id="auth">
+      <div class="section-title" onclick="toggleSection(this)">
+        1. Authentication (OTP-based)
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+
+        <!-- send-otp -->
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method POST">POST</span>
+            <span class="ep-path">api/auth/send-otp</span>
+            <span class="ep-desc">Send OTP to phone number</span>
+            <span class="auth-tag tag-pub">Public</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title">Request Body (Login)<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "phone": "9876543210",
+  "purpose": "login"
+}</pre>
+                </div>
+                <br>
+                <div class="detail-box">
+                  <div class="detail-box-title">Request Body (Register)<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "phone": "9876543210",
+  "purpose": "register",
+  "name": "Raj Kumar",
+  "email": "raj@example.com",
+  "medium": "tamil",
+  "gender": "male",
+  "age": 25,
+  "district": "Chennai"
+}</pre>
+                </div>
+                <br>
+                <table class="params-table">
+                  <tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr>
+                  <tr><td>phone</td><td class="param-type">string</td><td><span class="required">Required</span></td><td>10-digit mobile number</td></tr>
+                  <tr><td>purpose</td><td class="param-type">string</td><td><span class="optional">Optional</span></td><td>"login" (default) or "register"</td></tr>
+                  <tr><td>name</td><td class="param-type">string</td><td><span class="optional">Register only</span></td><td>Full name</td></tr>
+                  <tr><td>medium</td><td class="param-type">string</td><td><span class="optional">Optional</span></td><td>"tamil" or "english"</td></tr>
+                  <tr><td>gender</td><td class="param-type">string</td><td><span class="optional">Optional</span></td><td>"male", "female", "other"</td></tr>
+                  <tr><td>age</td><td class="param-type">int</td><td><span class="optional">Optional</span></td><td>Age in years</td></tr>
+                  <tr><td>district</td><td class="param-type">string</td><td><span class="optional">Optional</span></td><td>District name</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Success<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "message": "OTP sent to 9876543210",
+  "otp": "482910"
+}</pre>
+                </div>
+                <br>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s400">400</span>Validation Error</div>
+                  <pre>{
+  "success": false,
+  "error": "Valid 10-digit phone number required"
+}</pre>
+                </div>
+                <br>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s404">404</span>Not Registered</div>
+                  <pre>{
+  "success": false,
+  "error": "Phone number not registered. Please register first."
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- verify-otp -->
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method POST">POST</span>
+            <span class="ep-path">api/auth/verify-otp</span>
+            <span class="ep-desc">Verify OTP &amp; get JWT token</span>
+            <span class="auth-tag tag-pub">Public</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title">Request Body<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "phone": "9876543210",
+  "otp": "482910"
+}</pre>
+                </div>
+                <br>
+                <table class="params-table">
+                  <tr><th>Field</th><th>Type</th><th>Required</th></tr>
+                  <tr><td>phone</td><td class="param-type">string</td><td><span class="required">Required</span></td></tr>
+                  <tr><td>otp</td><td class="param-type">string</td><td><span class="required">Required</span></td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Success — save the token!<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "token": "eyJhbGciOiJIUzI1NiJ9...",
+  "user": {
+    "id": 42,
+    "name": "Raj Kumar",
+    "email": "raj@example.com",
+    "phone": "9876543210"
+  }
+}</pre>
+                </div>
+                <br>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s401">401</span>Invalid OTP</div>
+                  <pre>{
+  "success": false,
+  "error": "Invalid or expired OTP"
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- auth-login deprecated -->
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method POST">POST</span>
+            <span class="ep-path">api/auth/login</span>
+            <span class="ep-desc">Password login — removed</span>
+            <span class="auth-tag tag-dep">Deprecated</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div><p style="color:#64748b;font-size:13px">This endpoint has been removed. Use <code>POST api/auth/send-otp</code> instead.</p></div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s410">410 Gone</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{ "success": false, "error": "Password login removed. Use OTP login." }</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- auth-register deprecated -->
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method POST">POST</span>
+            <span class="ep-path">api/auth/register</span>
+            <span class="ep-desc">Legacy register — removed</span>
+            <span class="auth-tag tag-dep">Deprecated</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div><p style="color:#64748b;font-size:13px">This endpoint has been removed. Use <code>POST api/auth/send-otp</code> with <code>purpose=register</code> instead.</p></div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s410">410 Gone</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{ "success": false, "error": "Use /api/auth/send-otp with purpose=register" }</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /auth -->
+
+    <!-- ═══════════ DASHBOARD ═══════════ -->
+    <div class="section" id="dashboard">
+      <div class="section-title" onclick="toggleSection(this)">
+        2. Dashboard
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/dashboard/counts</span>
+            <span class="ep-desc">App summary stats</span>
+            <span class="auth-tag tag-pub">Public</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div><p style="color:#64748b;font-size:13px">No parameters required.</p></div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": {
+    "totals": {
+      "topics": 320,
+      "questions": 4800,
+      "flashcards": 1200,
+      "bullet_points": 9600,
+      "memory_tricks": 640,
+      "human_errors": 480,
+      "vs_comparisons": 160
+    },
+    "by_subject": [
+      {
+        "subject_id": 1,
+        "subject_name_english": "History",
+        "subject_name_tamil": "வரலாறு",
+        "topic_count": 45,
+        "question_count": 720
+      }
+    ],
+    "by_priority": [
+      {"exam_priority": "high", "count": 120}
+    ],
+    "by_difficulty": [
+      {"difficulty": "medium", "count": 2400}
+    ]
+  }
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ TOPICS ═══════════ -->
+    <div class="section" id="topics">
+      <div class="section-title" onclick="toggleSection(this)">
+        3. Topics
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+
+        <!-- GET topics -->
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/topics</span>
+            <span class="ep-desc">List all topics</span>
+            <span class="auth-tag tag-pub">Public</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <table class="params-table">
+                  <tr><th>Query Param</th><th>Type</th><th>Notes</th></tr>
+                  <tr><td>subject</td><td class="param-type">int/string</td><td>Filter by subject ID or name</td></tr>
+                  <tr><td>unit</td><td class="param-type">string</td><td>Filter by unit</td></tr>
+                  <tr><td>exam_priority</td><td class="param-type">string</td><td>"high", "medium", "low"</td></tr>
+                  <tr><td>q</td><td class="param-type">string</td><td>Search keyword (Tamil/English)</td></tr>
+                </table>
+                <br>
+                <p style="font-size:12px;color:#64748b">Example: <code>GET api/topics?subject=1&exam_priority=high</code></p>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "count": 45,
+  "data": [
+    {
+      "topic_id": 10,
+      "topic_name_tamil": "சிந்து வெளி நாகரிகம்",
+      "topic_name_english": "Indus Valley Civilization",
+      "subject_id": 1,
+      "subject_tamil": "வரலாறு",
+      "subject_english": "History",
+      "unit": "Unit 1",
+      "exam_priority": "high",
+      "source_type": "samacheer",
+      "samacheer_classes": "6,8",
+      "summary_tamil": "...",
+      "summary_english": "..."
+    }
+  ]
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GET topic/:id -->
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/topics/{id}</span>
+            <span class="ep-desc">Full topic detail with questions, flashcards &amp; tricks</span>
+            <span class="auth-tag tag-pub">Public</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <table class="params-table">
+                  <tr><th>Path Param</th><th>Type</th><th>Required</th></tr>
+                  <tr><td>id</td><td class="param-type">int</td><td><span class="required">Required</span></td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response (abbreviated)<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": {
+    "topic_id": 10,
+    "topic_name_english": "Indus Valley Civilization",
+    "topic_name_tamil": "சிந்து வெளி நாகரிகம்",
+    "subject_id": 1,
+    "exam_priority": "high",
+    "summary": {
+      "tamil": "...",
+      "english": "..."
+    },
+    "bullet_points": [
+      {
+        "id": 1,
+        "point_tamil": "...",
+        "point_english": "...",
+        "is_number_fact": true,
+        "key_number": "2500 BC",
+        "category": "date"
+      }
+    ],
+    "flashcards": [
+      {
+        "id": 1,
+        "front_tamil": "மொஹஞ்சதாரோ",
+        "back_tamil": "...",
+        "front_english": "Mohenjo-daro",
+        "back_english": "...",
+        "card_type": "basic"
+      }
+    ],
+    "memory_tricks": [...],
+    "vs_comparisons": [...],
+    "human_errors": [...],
+    "pyq_questions": [
+      {
+        "id": 1,
+        "question_tamil": "...",
+        "question_english": "...",
+        "options": ["A) ...", "B) ...", "C) ...", "D) ..."],
+        "correct_option": "B",
+        "year": "2022",
+        "difficulty": "medium"
+      }
+    ]
+  }
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GET topic questions -->
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/topics/{id}/questions</span>
+            <span class="ep-desc">All MCQ questions for a topic</span>
+            <span class="auth-tag tag-pub">Public</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <table class="params-table">
+                  <tr><th>Path Param</th><th>Type</th></tr>
+                  <tr><td>id</td><td class="param-type">int — topic ID</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "count": 15,
+  "data": [
+    {
+      "id": 1,
+      "question_tamil": "...",
+      "question_english": "Which year was Indus Valley discovered?",
+      "options": ["A) 1921", "B) 1900", "C) 1950", "D) 1932"],
+      "option_details": [
+        {"label": "A", "text": "1921"},
+        {"label": "B", "text": "1900"}
+      ],
+      "correct_option": "A",
+      "correct_answer_tamil": "1921",
+      "correct_answer_english": "1921",
+      "wrong_option_explanations": {
+        "B": "1900 was not the year...",
+        "C": "1950 was post-independence..."
+      },
+      "pyq_verified": true,
+      "year": "2019",
+      "difficulty": "easy",
+      "question_type": "mcq"
+    }
+  ]
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════ PYQ ═══════════ -->
+    <div class="section" id="pyq">
+      <div class="section-title" onclick="toggleSection(this)">
+        4. Previous Year Questions (PYQ)
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/pyq/years</span>
+            <span class="ep-desc">Available PYQ years</span>
+            <span class="auth-tag tag-pub">Public</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div><p style="color:#64748b;font-size:13px">No parameters.</p></div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": ["2023", "2022", "2021", "2020", "2019"]
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/pyq/questions</span>
+            <span class="ep-desc">PYQ questions with filters</span>
+            <span class="auth-tag tag-pub">Public</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <table class="params-table">
+                  <tr><th>Query Param</th><th>Type</th><th>Notes</th></tr>
+                  <tr><td>year</td><td class="param-type">string</td><td>e.g. "2022"</td></tr>
+                  <tr><td>subject_id</td><td class="param-type">int</td><td>Filter by subject</td></tr>
+                  <tr><td>limit</td><td class="param-type">int</td><td>Default 50</td></tr>
+                  <tr><td>offset</td><td class="param-type">int</td><td>For pagination, default 0</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "count": 50,
+  "data": [
+    {
+      "id": 301,
+      "question_tamil": "...",
+      "question_english": "...",
+      "correct_option": "C",
+      "difficulty": "medium",
+      "year": "2022",
+      "topic_id": 10,
+      "topic_name_english": "Indus Valley Civilization",
+      "subject_id": 1,
+      "subject_name_english": "History",
+      "options": [
+        {"label": "A", "text": "..."},
+        {"label": "B", "text": "..."},
+        {"label": "C", "text": "..."},
+        {"label": "D", "text": "..."}
+      ]
+    }
+  ]
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════ PYQ2 PUBLIC ═══════════ -->
+    <div class="section" id="pyq2-public">
+      <div class="section-title" onclick="toggleSection(this)">
+        5. PYQ2 Questions (Public)
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/pyq2/years</span>
+            <span class="ep-desc">PYQ2 papers list with counts</span>
+            <span class="auth-tag tag-pub">Public</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div><p style="color:#64748b;font-size:13px">No parameters.</p></div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": [
+    {
+      "id": 5,
+      "year": 2023,
+      "exam_code": "TNPSC-G2-2023",
+      "label": "Group II 2023",
+      "tamil_count": 150,
+      "english_count": 150,
+      "total_count": 300
+    }
+  ]
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/pyq2/questions</span>
+            <span class="ep-desc">Full question paper by year</span>
+            <span class="auth-tag tag-pub">Public</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <table class="params-table">
+                  <tr><th>Query Param</th><th>Type</th><th>Required</th></tr>
+                  <tr><td>year</td><td class="param-type">int</td><td><span class="required">Required</span></td></tr>
+                  <tr><td>medium</td><td class="param-type">string</td><td>"tamil", "english", or "all"</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "count": 150,
+  "data": [
+    {
+      "id": 1001,
+      "q_no": 1,
+      "question_text": "...",
+      "correct_option": "B",
+      "medium": "tamil",
+      "difficulty": "medium",
+      "options": [
+        {"label": "A", "text": "..."},
+        {"label": "B", "text": "..."},
+        {"label": "C", "text": "..."},
+        {"label": "D", "text": "..."}
+      ]
+    }
+  ]
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════ SUBJECTS ═══════════ -->
+    <div class="section" id="subjects">
+      <div class="section-title" onclick="toggleSection(this)">
+        6. Subjects <span style="font-size:11px;color:#7c3aed;font-weight:400;margin-left:8px">JWT Required</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/subjects</span>
+            <span class="ep-desc">All subjects</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div><p style="color:#64748b;font-size:13px">No parameters. Send JWT header.</p></div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": [
+    {
+      "subject_id": 1,
+      "subject_name_tamil": "வரலாறு",
+      "subject_name_english": "History"
+    },
+    {
+      "subject_id": 2,
+      "subject_name_tamil": "புவியியல்",
+      "subject_name_english": "Geography"
+    }
+  ]
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/subjects/{id}/topics</span>
+            <span class="ep-desc">Topics under a subject</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <table class="params-table">
+                  <tr><th>Path Param</th><th>Type</th></tr>
+                  <tr><td>id</td><td class="param-type">int — subject_id</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": [
+    {
+      "topic_id": 10,
+      "topic_name_english": "Indus Valley Civilization",
+      "topic_name_tamil": "சிந்து வெளி நாகரிகம்",
+      "subject_id": 1,
+      "exam_priority": "high",
+      "unit": "Unit 1"
+    }
+  ]
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════ USER PROFILE ═══════════ -->
+    <div class="section" id="user-profile">
+      <div class="section-title" onclick="toggleSection(this)">
+        7. User Profile <span style="font-size:11px;color:#7c3aed;font-weight:400;margin-left:8px">JWT Required</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/user/profile</span>
+            <span class="ep-desc">Get current user profile</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div><p style="color:#64748b;font-size:13px">No params. JWT header auto-identifies user.</p></div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": {
+    "id": 42,
+    "username": "9876543210",
+    "name": "Raj Kumar",
+    "email": "raj@example.com",
+    "phone": "9876543210",
+    "medium": "tamil",
+    "gender": "male",
+    "age": 25,
+    "district": "Chennai",
+    "street": null,
+    "door_no": null,
+    "created_at": "2024-01-15 10:30:00"
+  }
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method PUT">PUT</span>
+            <span class="ep-path">api/user/profile</span>
+            <span class="ep-desc">Update profile</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title">Request Body<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "name": "Raj Kumar",
+  "phone": "9876543210",
+  "medium": "tamil",
+  "gender": "male",
+  "age": 26,
+  "district": "Coimbatore",
+  "street": "Anna Nagar",
+  "door_no": "12/A"
+}</pre>
+                </div>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response</div>
+                  <pre>{"success": true}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════ PROGRESS ═══════════ -->
+    <div class="section" id="progress">
+      <div class="section-title" onclick="toggleSection(this)">
+        8. Progress <span style="font-size:11px;color:#7c3aed;font-weight:400;margin-left:8px">JWT Required</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/user/progress</span>
+            <span class="ep-desc">Get all topic progress</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div><p style="color:#64748b;font-size:13px">No params.</p></div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": [
+    {
+      "topic_id": 10,
+      "completed": 1,
+      "updated_at": "2024-06-01 08:00:00",
+      "topic_name_english": "Indus Valley Civilization",
+      "subject_id": 1,
+      "exam_priority": "high"
+    }
+  ]
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method POST">POST</span>
+            <span class="ep-path">api/user/progress</span>
+            <span class="ep-desc">Save topic completion</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title">Request Body<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "topic_id": 10,
+  "completed": true
+}</pre>
+                </div>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response</div>
+                  <pre>{"success": true}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════ STATS ═══════════ -->
+    <div class="section" id="stats">
+      <div class="section-title" onclick="toggleSection(this)">
+        9. Stats &amp; Analytics <span style="font-size:11px;color:#7c3aed;font-weight:400;margin-left:8px">JWT Required</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/user/stats</span>
+            <span class="ep-desc">Topics completed, exam scores summary</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div><p style="color:#64748b;font-size:13px">No params.</p></div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": {
+    "topics_completed": 45,
+    "total_topics": 320,
+    "exams_taken": 12,
+    "avg_score": 72,
+    "subject_progress": [
+      {
+        "subject_id": 1,
+        "subject_name_english": "History",
+        "total_topics": 45,
+        "completed_topics": 12
+      }
+    ]
+  }
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/user/analytics</span>
+            <span class="ep-desc">Detailed 30-day analytics</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div><p style="color:#64748b;font-size:13px">No params. Returns last 30 days of data.</p></div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": {
+    "score_trend": [
+      {"date": "2024-05-28", "avg_score": 68, "exams": 2}
+    ],
+    "subject_accuracy": [
+      {"subject_name_english": "History", "attempts": 5, "avg_score": 72, "accuracy": 72}
+    ],
+    "difficulty_breakdown": [
+      {"difficulty": "medium", "count": 24}
+    ],
+    "topic_mastery": {"completed": 45, "total": 320},
+    "activity_heatmap": [
+      {"activity_date": "2024-05-28", "questions_answered": 20}
+    ],
+    "wrong_answers": {
+      "total_wrong": 120,
+      "mastered": 45,
+      "unmastered": 75,
+      "avg_attempts": 2.3
+    }
+  }
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/user/analysis/weak-topics</span>
+            <span class="ep-desc">Top 10 weak topics (avg score &lt; 60%)</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div><p style="color:#64748b;font-size:13px">No params.</p></div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": [
+    {
+      "topic_id": 15,
+      "topic_name_english": "Mughal Empire",
+      "subject_name_english": "History",
+      "attempts": 3,
+      "avg_score": 38,
+      "unmastered_wrong_answers": 8,
+      "priority": "critical"
+    }
+  ]
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/user/analysis/recommendations</span>
+            <span class="ep-desc">Personalised study recommendations</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div><p style="color:#64748b;font-size:13px">No params.</p></div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": {
+    "message": "Focus on Mughal Empire — you have 8 unmastered wrong answers.",
+    "revise_wrong_answers": [
+      {"topic_id": 15, "topic_name_english": "Mughal Empire", "wrong_count": 8}
+    ],
+    "explore_high_priority": [
+      {"topic_id": 22, "topic_name_english": "Indian Constitution", "exam_priority": "high"}
+    ]
+  }
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════ WRONG ANSWERS ═══════════ -->
+    <div class="section" id="wrong">
+      <div class="section-title" onclick="toggleSection(this)">
+        10. Wrong Answers <span style="font-size:11px;color:#7c3aed;font-weight:400;margin-left:8px">JWT Required</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/user/wrong-answers</span>
+            <span class="ep-desc">List wrong answers</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <table class="params-table">
+                  <tr><th>Query Param</th><th>Type</th><th>Notes</th></tr>
+                  <tr><td>mastered</td><td class="param-type">int</td><td>0 = unmastered, 1 = mastered</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "count": 12,
+  "data": [
+    {
+      "id": 5,
+      "question_id": 301,
+      "selected_option": "A",
+      "attempt_count": 3,
+      "mastered": 0,
+      "last_wrong_at": "2024-05-28 10:00:00",
+      "question_english": "Which year...",
+      "correct_option": "C",
+      "topic_name_english": "Indus Valley Civilization",
+      "options": [
+        {"label": "A", "text": "1900"},
+        {"label": "B", "text": "1910"},
+        {"label": "C", "text": "1921"},
+        {"label": "D", "text": "1930"}
+      ]
+    }
+  ]
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method POST">POST</span>
+            <span class="ep-path">api/user/wrong-answers</span>
+            <span class="ep-desc">Record a wrong answer</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title">Request Body<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "question_id": 301,
+  "selected_option": "A"
+}</pre>
+                </div>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response</div>
+                  <pre>{"success": true}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method PUT">PUT</span>
+            <span class="ep-path">api/user/wrong-answers/{id}/master</span>
+            <span class="ep-desc">Mark as mastered</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <table class="params-table">
+                  <tr><th>Path Param</th><th>Type</th></tr>
+                  <tr><td>id</td><td class="param-type">int — question_id</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response</div>
+                  <pre>{"success": true}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════ SRS ═══════════ -->
+    <div class="section" id="srs">
+      <div class="section-title" onclick="toggleSection(this)">
+        11. SRS Flashcards (Spaced Repetition) <span style="font-size:11px;color:#7c3aed;font-weight:400;margin-left:8px">JWT Required</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/user/srs/due</span>
+            <span class="ep-desc">Cards due for review today</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <table class="params-table">
+                  <tr><th>Query Param</th><th>Type</th><th>Notes</th></tr>
+                  <tr><td>limit</td><td class="param-type">int</td><td>Max cards, default 20</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "due": [
+    {
+      "srs_id": 8,
+      "flashcard_id": 42,
+      "ease_factor": 2.5,
+      "interval_days": 6,
+      "due_date": "2024-06-01",
+      "front_tamil": "...",
+      "back_tamil": "...",
+      "front_english": "Mohenjo-daro",
+      "back_english": "An ancient city...",
+      "card_type": "basic",
+      "topic_name_english": "Indus Valley"
+    }
+  ],
+  "new_cards": [
+    {
+      "flashcard_id": 99,
+      "front_english": "...",
+      "back_english": "..."
+    }
+  ]
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method POST">POST</span>
+            <span class="ep-path">api/user/srs/review</span>
+            <span class="ep-desc">Submit review rating (SM-2 algorithm)</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title">Request Body<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "flashcard_id": 42,
+  "quality": 4
+}</pre>
+                </div>
+                <br>
+                <p style="font-size:12px;color:#64748b">quality: 0–5 &nbsp;|&nbsp; 0=blackout, 3=correct with effort, 5=perfect</p>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "next_review": "2024-06-07",
+  "interval_days": 6
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/user/srs/stats</span>
+            <span class="ep-desc">SRS summary</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div><p style="color:#64748b;font-size:13px">No params.</p></div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": {
+    "due_today": 8,
+    "total_in_srs": 95,
+    "mastered": 22
+  }
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════ BOOKMARKS ═══════════ -->
+    <div class="section" id="bookmarks">
+      <div class="section-title" onclick="toggleSection(this)">
+        12. Bookmarks <span style="font-size:11px;color:#7c3aed;font-weight:400;margin-left:8px">JWT Required</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/user/bookmarks</span>
+            <span class="ep-desc">Get all bookmarks</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <table class="params-table">
+                  <tr><th>Query Param</th><th>Type</th><th>Notes</th></tr>
+                  <tr><td>type</td><td class="param-type">string</td><td>"question" or "flashcard" (omit for both)</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": {
+    "questions": [
+      {
+        "bookmark_id": 3,
+        "question_id": 301,
+        "question_english": "...",
+        "correct_option": "C",
+        "bookmarked_at": "2024-05-28 09:00:00",
+        "options": [{"label":"A","text":"..."}]
+      }
+    ],
+    "flashcards": [
+      {
+        "bookmark_id": 7,
+        "flashcard_id": 42,
+        "front_english": "Mohenjo-daro",
+        "back_english": "...",
+        "bookmarked_at": "2024-05-27 14:00:00"
+      }
+    ]
+  }
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method POST">POST</span>
+            <span class="ep-path">api/user/bookmarks</span>
+            <span class="ep-desc">Add bookmark</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title">Request Body<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "item_type": "question",
+  "item_id": 301
+}</pre>
+                </div>
+                <br>
+                <p style="font-size:12px;color:#64748b">item_type: "question" or "flashcard"</p>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response</div>
+                  <pre>{"success": true}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method DELETE">DELETE</span>
+            <span class="ep-path">api/user/bookmarks/{id}</span>
+            <span class="ep-desc">Remove bookmark</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <table class="params-table">
+                  <tr><th>Path Param</th><th>Type</th></tr>
+                  <tr><td>id</td><td class="param-type">int — bookmark_id</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response</div>
+                  <pre>{"success": true}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════ ACTIVITY / GOALS ═══════════ -->
+    <div class="section" id="activity">
+      <div class="section-title" onclick="toggleSection(this)">
+        13. Activity, Streak &amp; Goals <span style="font-size:11px;color:#7c3aed;font-weight:400;margin-left:8px">JWT Required</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method POST">POST</span>
+            <span class="ep-path">api/user/activity</span>
+            <span class="ep-desc">Log today's study activity</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title">Request Body<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "questions_answered": 10,
+  "topics_studied": 2,
+  "flashcards_reviewed": 15
+}</pre>
+                </div>
+                <br><p style="font-size:12px;color:#64748b">Values are added to today's running total.</p>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response</div>
+                  <pre>{"success": true}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/user/streak</span>
+            <span class="ep-desc">Streak &amp; today's progress vs goals</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div><p style="color:#64748b;font-size:13px">No params.</p></div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": {
+    "current_streak": 5,
+    "longest_streak": 14,
+    "today": {
+      "questions_answered": 10,
+      "topics_studied": 2,
+      "flashcards_reviewed": 15
+    },
+    "goals": {
+      "daily_questions_goal": 20,
+      "daily_topics_goal": 5,
+      "daily_flashcards_goal": 10,
+      "exam_date": "2024-09-15"
+    }
+  }
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span> / <span class="ep-method PUT">PUT</span>
+            <span class="ep-path">api/user/goals</span>
+            <span class="ep-desc">Get or update daily goals</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title">PUT Request Body<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "daily_questions_goal": 30,
+  "daily_topics_goal": 5,
+  "daily_flashcards_goal": 20,
+  "exam_date": "2024-09-15"
+}</pre>
+                </div>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>GET Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": {
+    "daily_questions_goal": 30,
+    "daily_topics_goal": 5,
+    "daily_flashcards_goal": 20,
+    "exam_date": "2024-09-15"
+  }
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════ EXAM ATTEMPTS ═══════════ -->
+    <div class="section" id="exam">
+      <div class="section-title" onclick="toggleSection(this)">
+        14. Exam Attempts <span style="font-size:11px;color:#7c3aed;font-weight:400;margin-left:8px">JWT Required</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method POST">POST</span>
+            <span class="ep-path">api/exam-attempts</span>
+            <span class="ep-desc">Submit exam result</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title">Request Body<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "topic_id": 10,
+  "score": 80,
+  "total_questions": 10,
+  "correct_answers": 8,
+  "time_taken": 360
+}</pre>
+                </div>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "id": 55
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/exam-attempts</span>
+            <span class="ep-desc">Last 50 exam attempts</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div><p style="color:#64748b;font-size:13px">No params.</p></div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": [
+    {
+      "id": 55,
+      "topic_id": 10,
+      "score": 80,
+      "total_questions": 10,
+      "correct_answers": 8,
+      "time_taken": 360,
+      "created_at": "2024-06-01 09:00:00",
+      "topic_name_english": "Indus Valley Civilization",
+      "subject_name_english": "History"
+    }
+  ]
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════ MOCK TESTS ═══════════ -->
+    <div class="section" id="mock">
+      <div class="section-title" onclick="toggleSection(this)">
+        15. Mock Tests <span style="font-size:11px;color:#7c3aed;font-weight:400;margin-left:8px">JWT Required</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method POST">POST</span>
+            <span class="ep-path">api/mock-tests/generate</span>
+            <span class="ep-desc">Generate a new mock test</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title">Request Body<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "title": "Full Mock Test June 2024",
+  "num_questions": 100,
+  "time_limit": 5400,
+  "subject_ids": [1, 2, 3]
+}</pre>
+                </div>
+                <br>
+                <table class="params-table">
+                  <tr><th>Field</th><th>Default</th></tr>
+                  <tr><td>num_questions</td><td>100</td></tr>
+                  <tr><td>time_limit</td><td>5400 sec (90 min)</td></tr>
+                  <tr><td>subject_ids</td><td>[] (all subjects)</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "mock_test_id": 12,
+  "total_questions": 100,
+  "time_limit": 5400
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/mock-tests</span>
+            <span class="ep-desc">List all mock tests (last 20)</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div><p style="color:#64748b;font-size:13px">No params.</p></div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": [
+    {
+      "id": 12,
+      "title": "Full Mock Test June 2024",
+      "total_questions": 100,
+      "time_limit": 5400,
+      "status": "pending",
+      "score": null,
+      "correct_answers": null,
+      "created_at": "2024-06-01 08:00:00"
+    }
+  ]
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/mock-tests/{id}</span>
+            <span class="ep-desc">Get test with all questions</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <table class="params-table">
+                  <tr><th>Path Param</th><th>Type</th></tr>
+                  <tr><td>id</td><td class="param-type">int — mock_test_id</td></tr>
+                </table>
+                <br><p style="font-size:12px;color:#64748b">Correct answers hidden while test is "pending".</p>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": {
+    "id": 12,
+    "title": "Full Mock Test June 2024",
+    "status": "pending",
+    "questions": [
+      {
+        "slot_id": 1,
+        "question_order": 1,
+        "question_id": 301,
+        "question_english": "Which year...",
+        "options": [{"label":"A","text":"..."}],
+        "selected_option": null
+      }
+    ]
+  }
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method POST">POST</span>
+            <span class="ep-path">api/mock-tests/{id}/submit</span>
+            <span class="ep-desc">Submit answers &amp; get score</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title">Request Body<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "time_taken": 4800,
+  "answers": [
+    {"question_id": 301, "selected_option": "C"},
+    {"question_id": 302, "selected_option": "A"}
+  ]
+}</pre>
+                </div>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "score": 72,
+  "correct_answers": 72,
+  "total_questions": 100
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══════════ PYQ2 ATTEMPTS ═══════════ -->
+    <div class="section" id="pyq2-attempts">
+      <div class="section-title" onclick="toggleSection(this)">
+        16. PYQ2 Attempts <span style="font-size:11px;color:#7c3aed;font-weight:400;margin-left:8px">JWT Required</span>
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method POST">POST</span>
+            <span class="ep-path">api/pyq2/attempts</span>
+            <span class="ep-desc">Start a PYQ2 exam attempt</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title">Request Body<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "year": 2023,
+  "medium": "tamil"
+}</pre>
+                </div>
+                <br><p style="font-size:12px;color:#64748b">medium: "tamil", "english", or "all"</p>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": {
+    "attempt_id": 8,
+    "total_questions": 150,
+    "paper_id": 5
+  }
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method POST">POST</span>
+            <span class="ep-path">api/pyq2/attempts/{id}/submit</span>
+            <span class="ep-desc">Submit PYQ2 answers</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title">Request Body<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "time_taken_seconds": 7200,
+  "answers": {
+    "1001": "B",
+    "1002": "C",
+    "1003": "A"
+  }
+}</pre>
+                </div>
+                <br><p style="font-size:12px;color:#64748b">answers: key = question_id (string), value = selected option letter</p>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": {
+    "attempt_id": 8,
+    "total": 150,
+    "answered": 148,
+    "correct": 110,
+    "wrong": 38,
+    "unanswered": 2,
+    "score_percentage": 73.33
+  }
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/pyq2/history</span>
+            <span class="ep-desc">All submitted PYQ2 attempts</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div><p style="color:#64748b;font-size:13px">No params. Returns last 50.</p></div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": [
+    {
+      "id": 8,
+      "year": 2023,
+      "label": "Group II 2023",
+      "score_percentage": 73.33,
+      "correct_count": 110,
+      "wrong_count": 38,
+      "submitted_at": "2024-06-01 12:00:00"
+    }
+  ]
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method GET">GET</span>
+            <span class="ep-path">api/pyq2/history/{id}</span>
+            <span class="ep-desc">Detailed result with question-wise answers</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <table class="params-table">
+                  <tr><th>Path Param</th><th>Type</th></tr>
+                  <tr><td>id</td><td class="param-type">int — attempt_id</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "data": {
+    "attempt": {
+      "id": 8,
+      "year": 2023,
+      "score_percentage": 73.33
+    },
+    "questions": [
+      {
+        "id": 1001,
+        "q_no": 1,
+        "question_text": "...",
+        "correct_option": "B",
+        "selected_option": "B",
+        "is_correct": 1,
+        "options": [{"label":"A","text":"..."},{"label":"B","text":"..."}]
+      }
+    ]
+  }
+}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<footer style="text-align:center;padding:24px;color:#94a3b8;font-size:12px;border-top:1px solid #e2e8f0;margin-top:10px;background:#fff">
+  TNPSC API Documentation &mdash; CodeIgniter 3 &mdash; Update Base URL before sharing with developers
+</footer>
+
+<script>
+function toggleSection(el) {
+  el.closest('.section').classList.toggle('open');
+}
+function toggleEp(el) {
+  const detail = el.nextElementSibling;
+  detail.classList.toggle('open');
+}
+function copyCode(btn) {
+  const pre = btn.closest('.detail-box').querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'copied!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+// Open first section by default (already done via class)
+// Highlight active sidebar on scroll
+</script>
+</body>
+</html>

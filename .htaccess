@@ -1,0 +1,13 @@
+Options -Indexes
+RewriteEngine On
+RewriteBase /edu/
+
+# Pass Authorization header through to PHP
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Allow direct access to real files/dirs
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Route everything through CodeIgniter front controller
+RewriteRule ^(.*)$ index.php/$1 [L]
