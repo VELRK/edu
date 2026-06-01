@@ -7,14 +7,22 @@ class Tnpsc extends CI_Controller {
 
     public function __construct() {
         parent::__construct();
-        $this->load->database();
+        $this->_cors();
+        $db = $this->load->database('', TRUE);
+        if (!$db || !$db->conn_id) {
+            $this->_json(['success' => false, 'error' => 'Database connection failed'], 503);
+        }
+        $this->db = $db;
         $this->load->library('Jwt');
         $this->jwt_secret = getenv('JWT_SECRET') ?: 'YourSuperSecretKey';
-        $this->_cors();
         $this->_migrate_users();
     }
 
     private function _migrate_users() {
+        // Guard: skip if already migrated (tracked via a lock file to avoid running every request)
+        $lock = FCPATH . '.migrated';
+        if (file_exists($lock)) return;
+
         $cols = [
             'medium'       => "VARCHAR(10) NULL",
             'gender'       => "VARCHAR(10) NULL",
@@ -28,7 +36,6 @@ class Tnpsc extends CI_Controller {
                 $this->db->query("ALTER TABLE users ADD COLUMN `$col` $def");
             }
         }
-        // OTP codes table
         $this->db->query("CREATE TABLE IF NOT EXISTS otp_codes (
             id INT AUTO_INCREMENT PRIMARY KEY,
             phone VARCHAR(15) NOT NULL,
@@ -39,12 +46,21 @@ class Tnpsc extends CI_Controller {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             INDEX idx_phone (phone)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        file_put_contents($lock, date('Y-m-d H:i:s'));
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private function _cors() {
-        header('Access-Control-Allow-Origin: http://localhost:5173');
+        $allowed = [
+            'https://superfinelabels.in',
+            'http://superfinelabels.in',
+            'http://localhost:5173',
+            'http://localhost:3000',
+        ];
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        header('Access-Control-Allow-Origin: ' . (in_array($origin, $allowed) ? $origin : 'https://superfinelabels.in'));
         header('Access-Control-Allow-Credentials: true');
         header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
         header('Access-Control-Allow-Headers: Authorization, Content-Type');

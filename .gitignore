@@ -15,6 +15,7 @@ react-app/dist/
 # ── CodeIgniter ───────────────────────────────────────────────────────────────
 application/logs/*.php
 application/cache/*
+.migrated
 
 # ── OS / IDE ──────────────────────────────────────────────────────────────────
 .DS_Store
