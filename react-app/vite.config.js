@@ -7,12 +7,12 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
 
-    // In production the app lives at /edu/react-app/dist/
+    // In production the app lives at /edu/frontend/
     // In dev the Vite dev server runs at localhost:5173 with proxy
-    base: mode === 'production' ? '/edu/react-app/dist/' : '/',
+    base: mode === 'production' ? '/edu/frontend/' : '/',
 
     build: {
-      outDir: 'dist',
+      outDir: '../frontend',
       emptyOutDir: true,
     },
 

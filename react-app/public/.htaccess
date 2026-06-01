@@ -1,6 +1,6 @@
 Options -Indexes
 RewriteEngine On
-RewriteBase /edu/react-app/dist/
+RewriteBase /edu/frontend/
 
 # Serve real files/dirs directly
 RewriteCond %{REQUEST_FILENAME} !-f
