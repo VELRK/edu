@@ -32,8 +32,13 @@ jobs:
               git pull origin main
             fi
 
-            # ── Write production .env (printf avoids heredoc indentation issues) ─
-            printf "CI_ENV=production\nDB_HOST=${{ secrets.DB_HOST }}\nDB_USER=${{ secrets.DB_USER }}\nDB_PASSWORD=${{ secrets.DB_PASSWORD }}\nDB_NAME=${{ secrets.DB_NAME }}\nJWT_SECRET=${{ secrets.JWT_SECRET }}\n" > $TARGET/.env
+            # ── Write production .env only when secrets are configured ───────────
+            if [ -n "${{ secrets.DB_USER }}" ]; then
+              printf "CI_ENV=production\nDB_HOST=${{ secrets.DB_HOST }}\nDB_USER=${{ secrets.DB_USER }}\nDB_PASSWORD=${{ secrets.DB_PASSWORD }}\nDB_NAME=${{ secrets.DB_NAME }}\nJWT_SECRET=${{ secrets.JWT_SECRET }}\n" > $TARGET/.env
+              echo ".env written from secrets"
+            else
+              echo "Secrets not set — keeping existing .env on server"
+            fi
 
-            # Reset migration lock so new schema changes run once after deploy
+            # Reset migration lock so schema changes run once after deploy
             rm -f $TARGET/.migrated
