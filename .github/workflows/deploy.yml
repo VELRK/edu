@@ -19,7 +19,7 @@ jobs:
           key:      ${{ secrets.SSH_KEY_ILF }}
           port:     65002
           script: |
-            TARGET=/home/u221026474/domains/indianladiesfashion.com/public_html/edu
+            TARGET=/home/u221026474/domains/superfinelabels.in/public_html/edu
 
             # ── Pull latest code ─────────────────────────────────────────────
             cd $TARGET
