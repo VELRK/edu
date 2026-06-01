@@ -75,7 +75,7 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => getenv('DB_HOST')     ?: 'localhost',
+	'hostname' => 'localhost',
 	'username' => getenv('DB_USER')     ?: 'u221026474_edu',
 	'password' => getenv('DB_PASSWORD') ?: 'Velmurugn0071@!!',
 	'database' => getenv('DB_NAME')     ?: 'u221026474_edu',
