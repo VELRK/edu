@@ -19,35 +19,41 @@ class Tnpsc extends CI_Controller {
     }
 
     private function _migrate_users() {
-        // Guard: skip if already migrated (tracked via a lock file to avoid running every request)
         $lock = FCPATH . '.migrated';
         if (file_exists($lock)) return;
 
-        $cols = [
-            'medium'       => "VARCHAR(10) NULL",
-            'gender'       => "VARCHAR(10) NULL",
-            'age'          => "TINYINT UNSIGNED NULL",
-            'district'     => "VARCHAR(100) NULL",
-            'otp_verified' => "TINYINT(1) DEFAULT 0",
-        ];
-        foreach ($cols as $col => $def) {
-            $check = $this->db->query("SELECT COUNT(*) as cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='users' AND COLUMN_NAME=?", [$col])->row();
-            if ($check->cnt == 0) {
-                $this->db->query("ALTER TABLE users ADD COLUMN `$col` $def");
+        try {
+            $cols = [
+                'medium'       => "VARCHAR(10) NULL",
+                'gender'       => "VARCHAR(10) NULL",
+                'age'          => "TINYINT UNSIGNED NULL",
+                'district'     => "VARCHAR(100) NULL",
+                'otp_verified' => "TINYINT(1) DEFAULT 0",
+            ];
+            foreach ($cols as $col => $def) {
+                $res = $this->db->query(
+                    "SELECT COUNT(*) as cnt FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='users' AND COLUMN_NAME=?",
+                    [$col]
+                );
+                if ($res && $res->row() && $res->row()->cnt == 0) {
+                    $this->db->query("ALTER TABLE users ADD COLUMN `$col` $def");
+                }
             }
-        }
-        $this->db->query("CREATE TABLE IF NOT EXISTS otp_codes (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            phone VARCHAR(15) NOT NULL,
-            otp VARCHAR(6) NOT NULL,
-            purpose VARCHAR(10) DEFAULT 'login',
-            expires_at DATETIME NOT NULL,
-            used TINYINT(1) DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_phone (phone)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            $this->db->query("CREATE TABLE IF NOT EXISTS otp_codes (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                phone VARCHAR(15) NOT NULL,
+                otp VARCHAR(6) NOT NULL,
+                purpose VARCHAR(10) DEFAULT 'login',
+                expires_at DATETIME NOT NULL,
+                used TINYINT(1) DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_phone (phone)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
-        file_put_contents($lock, date('Y-m-d H:i:s'));
+            file_put_contents($lock, date('Y-m-d H:i:s'));
+        } catch (\Throwable $e) {
+            log_message('error', '_migrate_users: ' . $e->getMessage());
+        }
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
