@@ -1,52 +1,43 @@
-name: Deploy to cPanel
+name: Auto Deploy Hostinger
 
 on:
   push:
     branches:
-      - main          # auto-deploy on every push to main
-  workflow_dispatch:  # manual trigger from GitHub Actions tab
+      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
 
     steps:
-      # ── 1. Checkout ────────────────────────────────────────────────────────
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # ── 2. Write production .env from GitHub Secrets ──────────────────────
-      - name: Write production .env
-        run: |
-          cat > .env <<EOF
-          CI_ENV=production
-          DB_HOST=${{ secrets.DB_HOST }}
-          DB_USER=${{ secrets.DB_USER }}
-          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-          DB_NAME=${{ secrets.DB_NAME }}
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          EOF
-
-      # ── 3. Upload via FTP ─────────────────────────────────────────────────
-      # React dist/ is pre-built locally and committed — no Node needed here
-      - name: Upload to cPanel via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: Deploy
+        uses: appleboy/ssh-action@master
         with:
-          server:   ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USER }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /public_html/edu/
-          local-dir: ./
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            react-app/src/**
-            react-app/public/**
-            react-app/vite.config.js
-            react-app/package*.json
-            react-app/eslint.config.*
-            react-app/.env
-            deploy.sh
-            .deploy.env
+          host:     ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key:      ${{ secrets.SSH_KEY_ILF }}
+          port:     65002
+          script: |
+            TARGET=/home/u221026474/domains/indianladiesfashion.com/public_html/edu
+
+            # ── Pull latest code ─────────────────────────────────────────────
+            cd $TARGET
+            if [ ! -d ".git" ]; then
+              git init
+              git remote add origin https://github.com/VELRK/edu.git
+              git fetch origin main
+              git reset --hard origin/main
+            else
+              git pull origin main
+            fi
+
+            # ── Write production .env ────────────────────────────────────────
+            cat > $TARGET/.env <<EOF
+            CI_ENV=production
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            EOF
