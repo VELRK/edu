@@ -40,5 +40,6 @@ jobs:
               echo "Secrets not set — keeping existing .env on server"
             fi
 
-            # Reset migration lock so schema changes run once after deploy
+            # Reset migration locks so schema changes run once after deploy
             rm -f $TARGET/.migrated
+            rm -f $TARGET/.migrated_v2
