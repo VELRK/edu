@@ -16,12 +16,12 @@ jobs:
       - name: Load SSH key
         uses: webfactory/ssh-agent@v0.9.0
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ secrets.SSH_KEY_ILF }}
 
       - name: Add Hostinger to known hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -p 65002 -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh-keyscan -p 65002 -H "${{ secrets.HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Deploy via rsync
         run: |
@@ -37,10 +37,10 @@ jobs:
             --exclude='application/cache/*' \
             --exclude='application/logs/*' \
             -e "ssh -p 65002 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
-            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/u221026474/domains/superfinelabels.in/public_html/edu/
+            ./ ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/u221026474/domains/superfinelabels.in/public_html/edu/
 
       - name: Reset migration locks
         run: |
           ssh -p 65002 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+            ${{ secrets.USERNAME }}@${{ secrets.HOST }} \
             "rm -f /home/u221026474/domains/superfinelabels.in/public_html/edu/.migrated /home/u221026474/domains/superfinelabels.in/public_html/edu/.migrated_v2"
