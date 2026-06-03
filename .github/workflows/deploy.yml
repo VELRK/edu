@@ -6,14 +6,12 @@ on:
       - main
   workflow_dispatch:
 
-# Deployment is handled by Hostinger Git Auto-Deploy webhook.
-# hPanel → Advanced → Git → connected to this repo (branch: main)
-# Push to main → GitHub webhook → Hostinger pulls internally.
-# No SSH/FTP needed from GitHub Actions.
-
 jobs:
-  notify:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy triggered
-        run: echo "Push received. Hostinger Git webhook will auto-deploy."
+      - name: Trigger deploy via webhook
+        run: |
+          RESPONSE=$(curl -sf "https://superfinelabels.in/edu/hook.php?token=${{ secrets.DEPLOY_TOKEN }}")
+          echo "$RESPONSE"
+          echo "$RESPONSE" | grep -q '"success":true' || { echo "Deploy failed"; exit 1; }
