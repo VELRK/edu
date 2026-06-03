@@ -16,6 +16,7 @@ class Tnpsc extends CI_Controller {
         $this->load->library('Jwt');
         $this->jwt_secret = getenv('JWT_SECRET') ?: 'YourSuperSecretKey';
         $this->_migrate_users();
+        $this->_migrate_token_blacklist();
     }
 
     private function _migrate_users() {
@@ -53,6 +54,25 @@ class Tnpsc extends CI_Controller {
             file_put_contents($lock, date('Y-m-d H:i:s'));
         } catch (\Throwable $e) {
             log_message('error', '_migrate_users: ' . $e->getMessage());
+        }
+    }
+
+    private function _migrate_token_blacklist() {
+        $lock = FCPATH . '.migrated_v2';
+        if (file_exists($lock)) return;
+        try {
+            $this->db->query("CREATE TABLE IF NOT EXISTS token_blacklist (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                token_hash CHAR(32) NOT NULL,
+                user_id INT NOT NULL,
+                expires_at DATETIME NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_token_hash (token_hash),
+                INDEX idx_expires (expires_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            file_put_contents($lock, date('Y-m-d H:i:s'));
+        } catch (\Throwable $e) {
+            log_message('error', '_migrate_token_blacklist: ' . $e->getMessage());
         }
     }
 
@@ -103,10 +123,14 @@ class Tnpsc extends CI_Controller {
         }
         $token = substr($auth, 7);
         try {
-            return Jwt::decode($token, $this->jwt_secret);
+            $payload = Jwt::decode($token, $this->jwt_secret);
         } catch (Exception $e) {
             $this->_json(['success' => false, 'error' => 'Invalid token'], 403);
         }
+        if ($this->db->where('token_hash', md5($token))->count_all_results('token_blacklist') > 0) {
+            $this->_json(['success' => false, 'error' => 'Token has been invalidated. Please login again.'], 401);
+        }
+        return $payload;
     }
 
     private function _make_token($payload) {
@@ -212,6 +236,38 @@ class Tnpsc extends CI_Controller {
 
     public function auth_register() {
         $this->_json(['success' => false, 'error' => 'Use /api/auth/send-otp with purpose=register'], 410);
+    }
+
+    public function auth_logout() {
+        $auth = isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : '';
+        if (!$auth) $auth = isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION']) ? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] : '';
+        if (!$auth && function_exists('apache_request_headers')) {
+            $headers = apache_request_headers();
+            $auth = isset($headers['Authorization']) ? $headers['Authorization'] : '';
+        }
+        if (!$auth || strpos($auth, 'Bearer ') !== 0)
+            $this->_json(['success' => false, 'error' => 'No token provided'], 401);
+
+        $token = substr($auth, 7);
+        try {
+            $payload = Jwt::decode($token, $this->jwt_secret);
+        } catch (Exception $e) {
+            $this->_json(['success' => false, 'error' => 'Invalid token'], 403);
+        }
+
+        $hash = md5($token);
+        if ($this->db->where('token_hash', $hash)->count_all_results('token_blacklist') === 0) {
+            $this->db->insert('token_blacklist', [
+                'token_hash' => $hash,
+                'user_id'    => $payload['id'],
+                'expires_at' => date('Y-m-d H:i:s', $payload['exp']),
+            ]);
+            // Occasionally purge expired tokens
+            if (rand(1, 20) === 1) {
+                $this->db->where('expires_at <', date('Y-m-d H:i:s'))->delete('token_blacklist');
+            }
+        }
+        $this->_json(['success' => true, 'message' => 'Logged out successfully']);
     }
 
     // ── TOPICS (public) ───────────────────────────────────────────────────────
@@ -464,18 +520,19 @@ class Tnpsc extends CI_Controller {
         $row = $this->db->get_where('users', ['id' => $user['id']])->row();
         if (!$row) $this->_json(['success' => false, 'error' => 'User not found'], 404);
         $this->_json(['success' => true, 'data' => [
-            'id'         => $row->id,
-            'username'   => $row->username,
-            'name'       => $row->name,
-            'email'      => $row->email,
-            'phone'      => $row->phone,
-            'medium'     => $row->medium ?? null,
-            'gender'     => $row->gender ?? null,
-            'age'        => $row->age ?? null,
-            'district'   => $row->district ?? null,
-            'street'     => $row->street ?? null,
-            'door_no'    => $row->door_no ?? null,
-            'created_at' => $row->created_at,
+            'id'           => $row->id,
+            'username'     => $row->username,
+            'name'         => $row->name,
+            'email'        => $row->email,
+            'phone'        => $row->phone,
+            'medium'       => $row->medium ?? null,
+            'gender'       => $row->gender ?? null,
+            'age'          => isset($row->age) ? (int)$row->age : null,
+            'district'     => $row->district ?? null,
+            'street'       => $row->street ?? null,
+            'door_no'      => $row->door_no ?? null,
+            'otp_verified' => (bool)($row->otp_verified ?? false),
+            'created_at'   => $row->created_at,
         ]]);
     }
 

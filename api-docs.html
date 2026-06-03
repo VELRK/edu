@@ -117,7 +117,7 @@
   <nav class="sidebar">
     <div class="sidebar-group">
       <div class="sidebar-group-title">Public</div>
-      <a href="#auth">Authentication</a>
+      <a href="#auth">Authentication &amp; Logout</a>
       <a href="#dashboard">Dashboard</a>
       <a href="#topics">Topics</a>
       <a href="#pyq">PYQ</a>
@@ -152,7 +152,7 @@
     <!-- ═══════════ AUTH ═══════════ -->
     <div class="section open" id="auth">
       <div class="section-title" onclick="toggleSection(this)">
-        1. Authentication (OTP-based)
+        1. Authentication — OTP &amp; Logout
         <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="section-body">
@@ -277,6 +277,47 @@
   "success": false,
   "error": "Invalid or expired OTP"
 }</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- logout -->
+        <div class="endpoint">
+          <div class="ep-header" onclick="toggleEp(this)">
+            <span class="ep-method POST">POST</span>
+            <span class="ep-path">api/auth/logout</span>
+            <span class="ep-desc">Invalidate JWT token (server-side blacklist)</span>
+            <span class="auth-tag tag-jwt">JWT</span>
+          </div>
+          <div class="ep-detail">
+            <div class="detail-grid">
+              <div>
+                <p style="color:#64748b;font-size:13px">No request body needed. Send the JWT in the <code>Authorization: Bearer &lt;token&gt;</code> header. The token is added to a server-side blacklist and immediately rejected on any future request.</p>
+                <br>
+                <table class="params-table">
+                  <tr><th>Header</th><th>Type</th><th>Required</th><th>Notes</th></tr>
+                  <tr><td>Authorization</td><td class="param-type">string</td><td><span class="required">Required</span></td><td>Bearer &lt;jwt_token&gt;</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Logout success<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+                  <pre>{
+  "success": true,
+  "message": "Logged out successfully"
+}</pre>
+                </div>
+                <br>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s401">401</span>No token</div>
+                  <pre>{ "success": false, "error": "No token provided" }</pre>
+                </div>
+                <br>
+                <div class="detail-box">
+                  <div class="detail-box-title"><span class="status-badge s401">403</span>Bad token</div>
+                  <pre>{ "success": false, "error": "Invalid token" }</pre>
                 </div>
               </div>
             </div>
@@ -830,7 +871,7 @@
     <!-- ═══════════ USER PROFILE ═══════════ -->
     <div class="section" id="user-profile">
       <div class="section-title" onclick="toggleSection(this)">
-        7. User Profile <span style="font-size:11px;color:#7c3aed;font-weight:400;margin-left:8px">JWT Required</span>
+        7. User Profile &amp; Account <span style="font-size:11px;color:#7c3aed;font-weight:400;margin-left:8px">JWT Required</span>
         <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="section-body">
@@ -844,7 +885,7 @@
           </div>
           <div class="ep-detail">
             <div class="detail-grid">
-              <div><p style="color:#64748b;font-size:13px">No params. JWT header auto-identifies user.</p></div>
+              <div><p style="color:#64748b;font-size:13px">No params. JWT header auto-identifies user. Returns all profile fields from the users table.</p></div>
               <div>
                 <div class="detail-box">
                   <div class="detail-box-title"><span class="status-badge s200">200 OK</span>Response<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
@@ -860,8 +901,9 @@
     "gender": "male",
     "age": 25,
     "district": "Chennai",
-    "street": null,
-    "door_no": null,
+    "street": "Anna Nagar",
+    "door_no": "12/A",
+    "otp_verified": true,
     "created_at": "2024-01-15 10:30:00"
   }
 }</pre>
@@ -885,6 +927,7 @@
                   <div class="detail-box-title">Request Body<button class="copy-btn" onclick="copyCode(this)">copy</button></div>
                   <pre>{
   "name": "Raj Kumar",
+  "email": "raj@example.com",
   "phone": "9876543210",
   "medium": "tamil",
   "gender": "male",

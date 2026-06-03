@@ -56,6 +56,7 @@ $route['default_controller'] = 'Home';
 // Auth (OTP-based)
 $route['api/auth/send-otp']   = 'Tnpsc/auth_send_otp';
 $route['api/auth/verify-otp'] = 'Tnpsc/auth_verify_otp';
+$route['api/auth/logout']     = 'Tnpsc/auth_logout';
 $route['api/auth/login']      = 'Tnpsc/auth_login';
 $route['api/auth/register']   = 'Tnpsc/auth_register';
 
