@@ -6,37 +6,14 @@ on:
       - main
   workflow_dispatch:
 
+# Deployment is handled by Hostinger Git Auto-Deploy webhook.
+# hPanel → Advanced → Git → connected to this repo (branch: main)
+# Push to main → GitHub webhook → Hostinger pulls internally.
+# No SSH/FTP needed from GitHub Actions.
+
 jobs:
-  deploy:
+  notify:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Deploy
-        uses: appleboy/ssh-action@master
-        with:
-          host:     ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key:      ${{ secrets.SSH_KEY_ILF }}
-          port:     65002
-          script: |
-            TARGET=/home/u221026474/domains/superfinelabels.in/public_html/edu
-
-            cd $TARGET
-            if [ ! -d ".git" ]; then
-              git init
-              git remote add origin https://github.com/VELRK/edu.git
-              git fetch origin main
-              git reset --hard origin/main
-            else
-              git pull origin main
-            fi
-
-            if [ -n "${{ secrets.DB_USER }}" ]; then
-              printf "CI_ENV=production\nDB_HOST=${{ secrets.DB_HOST }}\nDB_USER=${{ secrets.DB_USER }}\nDB_PASSWORD=${{ secrets.DB_PASSWORD }}\nDB_NAME=${{ secrets.DB_NAME }}\nJWT_SECRET=${{ secrets.JWT_SECRET }}\n" > $TARGET/.env
-              echo ".env written from secrets"
-            else
-              echo "Secrets not set — keeping existing .env on server"
-            fi
-
-            rm -f $TARGET/.migrated
-            rm -f $TARGET/.migrated_v2
+      - name: Deploy triggered
+        run: echo "Push received. Hostinger Git webhook will auto-deploy."
