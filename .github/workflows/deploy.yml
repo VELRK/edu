@@ -17,7 +17,7 @@ jobs:
       - name: Install lftp
         run: sudo apt-get install -y lftp
 
-      - name: Write production .env
+      - name: Write production .env into workspace
         run: |
           printf "CI_ENV=production\nDB_HOST=${{ secrets.DB_HOST }}\nDB_USER=${{ secrets.DB_USER }}\nDB_PASSWORD=${{ secrets.DB_PASSWORD }}\nDB_NAME=${{ secrets.DB_NAME }}\nJWT_SECRET=${{ secrets.JWT_SECRET }}\n" > .env
 
@@ -27,20 +27,14 @@ jobs:
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASS: ${{ secrets.FTP_PASS }}
         run: |
-          lftp -c "
-            set ftp:ssl-allow no;
-            set ssl:verify-certificate no;
-            open -u '$FTP_USER','$FTP_PASS' '$FTP_HOST';
-            mirror --reverse --delete --verbose \
-              --exclude-glob .git/ \
-              --exclude-glob .deploy.env \
-              --exclude-glob deploy.sh \
-              --exclude-glob react-app/node_modules/ \
-              --exclude-glob react-app/src/ \
-              --exclude-glob application/logs/ \
-              --exclude-glob application/cache/ \
-              . /public_html/edu;
-            rm -f /public_html/edu/.migrated;
-            rm -f /public_html/edu/.migrated_v2;
-            bye
-          "
+          cat > /tmp/deploy.lftp << EOF
+          set ftp:ssl-allow no
+          set ssl:verify-certificate no
+          open -u $FTP_USER,$FTP_PASS $FTP_HOST
+          mirror --reverse --delete --verbose --exclude-glob .git/ --exclude-glob .deploy.env --exclude-glob deploy.sh --exclude-glob react-app/node_modules/ --exclude-glob react-app/src/ --exclude-glob application/logs/ --exclude-glob application/cache/ . /public_html/edu
+          rm -f /public_html/edu/.migrated
+          rm -f /public_html/edu/.migrated_v2
+          bye
+          EOF
+
+          lftp -f /tmp/deploy.lftp
