@@ -4,43 +4,15 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Load SSH key
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_KEY_ILF }}
-
-      - name: Add Hostinger to known hosts
+      - name: Trigger deploy via PHP webhook
         run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -p 65002 -H "${{ secrets.HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
-
-      - name: Deploy via rsync
-        run: |
-          rsync -az --delete \
-            --exclude='.git/' \
-            --exclude='.github/' \
-            --exclude='.claude/' \
-            --exclude='.migrated' \
-            --exclude='.migrated_v2' \
-            --exclude='.env' \
-            --exclude='application/config/database.php' \
-            --exclude='application/config/config.php' \
-            --exclude='application/cache/*' \
-            --exclude='application/logs/*' \
-            -e "ssh -p 65002 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
-            ./ ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/u221026474/domains/superfinelabels.in/public_html/edu/
-
-      - name: Reset migration locks
-        run: |
-          ssh -p 65002 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            ${{ secrets.USERNAME }}@${{ secrets.HOST }} \
-            "rm -f /home/u221026474/domains/superfinelabels.in/public_html/edu/.migrated /home/u221026474/domains/superfinelabels.in/public_html/edu/.migrated_v2"
+          RESPONSE=$(curl -sf --max-time 60 \
+            "https://superfinelabels.in/edu/hook.php?token=${{ secrets.DEPLOY_TOKEN }}")
+          echo "$RESPONSE"
+          echo "$RESPONSE" | grep -q '"success":true' || { echo "Deploy failed"; exit 1; }
